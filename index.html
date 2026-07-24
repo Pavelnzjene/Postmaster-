@@ -1,91 +1,137 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PostMaster AI - Софтуер за Социални Мрежи</title>
+    <title>PostMaster AI - Професионален Генератор за Бизнес</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .hero-card { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px; padding: 25px; }
-        .app-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 25px; margin-top: -20px; }
-        .btn-custom { background-color: #ff6b6b; color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 8px; transition: all 0.3s; }
-        .btn-custom:hover { background-color: #ee5253; color: white; transform: translateY(-2px); }
-        .output-box { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .post-image { width: 100%; max-height: 350px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; }
-        .idea-box { background-color: #eef2f7; border-left: 4px solid #2a5298; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-top: 15px; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero-card { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; border-radius: 16px; padding: 30px 20px; }
+        .app-card { background: white; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); padding: 25px; margin-top: -25px; }
+        .btn-magic { background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%); color: white; font-weight: bold; border: none; padding: 14px 28px; border-radius: 10px; font-size: 1.1rem; transition: all 0.3s; }
+        .btn-magic:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 71, 87, 0.4); color: white; }
+        .output-card { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; }
+        .post-img { width: 100%; border-radius: 10px; max-height: 400px; object-fit: cover; }
+        .idea-box { background-color: #eef2f7; border-left: 4px solid #0d6efd; padding: 12px 15px; border-radius: 6px; font-size: 0.92rem; }
+        .loader { display: none; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container py-4">
+    <!-- Hero Header -->
     <div class="hero-card text-center">
-        <h1 class="fw-bold"><i class="fa-solid fa-paper-plane me-2"></i>PostMaster AI</h1>
-        <p class="lead mb-0">Генератор на богати постове и визии за бизнеса</p>
+        <h1 class="fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>PostMaster AI</h1>
+        <p class="mb-0 fs-6 opacity-90">Създай пълен пост (Текст + Идея за заснемане + Уникална AI Снимка) с 1 клик</p>
     </div>
 
-    <div class="app-card mx-auto" style="max-width: 700px;">
+    <!-- Main Card -->
+    <div class="app-card mx-auto" style="max-width: 750px;">
         <form id="postForm">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold"><i class="fa-solid fa-globe me-1"></i> Език / Language</label>
-                    <select class="form-select" id="language">
-                        <option value="bg" selected>🇧🇬 Български</option>
-                        <option value="el">🇬🇷 Ελληνικά (Гръцки)</option>
-                        <option value="en">🇬🇧 English (Английски)</option>
-                    </select>
+                <!-- API Key Input -->
+                <div class="col-12">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-key me-1 text-warning"></i> Google Gemini API Ключ</label>
+                    <input type="password" class="form-control" id="apiKey" placeholder="Въведете вашия Gemini API ключ тук...">
+                    <div class="form-text">Нямате ключ? Вземете го безплатно от <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.</div>
                 </div>
-                
+
+                <!-- Език -->
                 <div class="col-md-6">
-                    <label class="form-label fw-bold"><i class="fa-solid fa-briefcase me-1"></i> Бизнес ниша</label>
-                    <select class="form-select" id="niche">
-                        <option value="auto">🚗 Автосервиз & Детайлинг</option>
-                        <option value="welding">🛠️ Заварчици & Строителство</option>
-                        <option value="home">🏠 Услуги за дома (ВИК, Климатици)</option>
-                        <option value="food">🍽️ Заведение & Ресторант</option>
+                    <label class="form-label fw-bold"><i class="fa-solid fa-language me-1"></i> Език на публикацията</label>
+                    <select class="form-select" id="language">
+                        <option value="Български" selected>🇧🇬 Български</option>
+                        <option value="Гръцки">🇬🇷 Ελληνικά (Гръцки)</option>
+                        <option value="Английски">🇬🇧 English (Английски)</option>
                     </select>
                 </div>
 
+                <!-- Бизнес Ниша -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-store me-1"></i> Бизнес / Ниша</label>
+                    <select class="form-select" id="niche">
+                        <optgroup label="🚗 Автомобили & Транспорт">
+                            <option value="Автосервиз & Диагностика">🚗 Автосервиз & Диагностика</option>
+                            <option value="Автодетайлинг & Полиране">✨ Автодетайлинг & Полиране</option>
+                            <option value="Пътна помощ & Вулканизация">🛞 Пътна помощ & Вулканизация</option>
+                            <option value="Автомивка">🧼 Автомивка</option>
+                        </optgroup>
+                        <optgroup label="🛠️ Майстори & Строителство">
+                            <option value="Заваръчни услуги & Метални конструкции">🛠️ Заваряване & Метални конструкции</option>
+                            <option value="ВИК & Водопроводчик">🚰 ВИК & Водопроводчик</option>
+                            <option value="Електротехник & Инсталации">⚡ Електротехник & Инсталации</option>
+                            <option value="Климатици & Охлаждане">❄️ Монтаж & Сервиз на Климатици</option>
+                            <option value="Ремонт на покриви & Изграждане">🏠 Покриви & Строителство</option>
+                            <option value="Вътрешни ремонти & Гипсокартон/Боя">🎨 Вътрешни ремонти & Боядисване</option>
+                        </optgroup>
+                        <optgroup label="🍽️ Заведения & Услуги">
+                            <option value="Ресторант & Таверна">🍽️ Ресторант & Таверна</option>
+                            <option value="Кафене & Бар">☕ Кафене & Бар</option>
+                            <option value="Салон за красота & Фризьор">✂️ Фризьор & Барбершоп</option>
+                            <option value="Козметика & Нокти">💅 Козметика & Маникюр</option>
+                        </optgroup>
+                        <optgroup label="🏠 Имоти & Домашни услуги">
+                            <option value="Недвижими имоти">🏢 Недвижими имоти</option>
+                            <option value="Професионално почистване">🧹 Професионално почистване</option>
+                            <option value="Мебели по поръчка">🪑 Изработка на Мебели</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Цел -->
                 <div class="col-md-12">
                     <label class="form-label fw-bold"><i class="fa-solid fa-bullhorn me-1"></i> Цел на публикацията</label>
                     <select class="form-select" id="goal">
-                        <option value="promo">💥 Оферта / Промоция</option>
-                        <option value="tip">💡 Полезен съвет / Едукация</option>
-                        <option value="portfolio">📸 Показване на проект (Преди/След)</option>
+                        <option value="Промоционална оферта с отстъпка">💥 Промоция / Специална оферта</option>
+                        <option value="Представяне на завършен проект (Преди / След)">📸 Показване на завършен проект (Преди/След)</option>
+                        <option value="Полезен съвет за клиентите">💡 Полезен съвет / Изграждане на доверие</option>
+                        <option value="Спешно записване на часове">📅 Свободни часове / Спешна услуга</option>
                     </select>
                 </div>
 
+                <!-- Описание -->
                 <div class="col-md-12">
-                    <label class="form-label fw-bold"><i class="fa-solid fa-pen me-1"></i> Описание на офертата</label>
-                    <textarea class="form-textarea form-control" id="details" rows="3" placeholder="Напр. Отстъпка 15% за полиране на фарове или Свежа домашна паста днес..."></textarea>
+                    <label class="form-label fw-bold"><i class="fa-solid fa-pen-to-square me-1"></i> Кратко описание / Ключови детайли</label>
+                    <textarea class="form-control" id="details" rows="3" placeholder="Напр. Отстъпка 15% до края на седмицата, Телефон: 99123456, Безплатен оглед..."></textarea>
                 </div>
 
+                <!-- Бутон за генериране -->
                 <div class="col-12 text-center mt-4">
-                    <button type="button" class="btn btn-custom w-100" onclick="generatePost()">
-                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Генерирай Пост + Визия
+                    <button type="button" class="btn btn-magic w-100" onclick="generateAllWithAI()">
+                        <i class="fa-solid fa-bolt me-2"></i> Генерирай Всичко с 1 Клик (AI)
                     </button>
                 </div>
             </div>
         </form>
 
+        <!-- Loader -->
+        <div class="loader" id="loader">
+            <div class="spinner-border text-primary my-3" role="status"></div>
+            <p class="fw-bold text-secondary">AI генерира уникален текст, идея и снимка... Моля, изчакайте!</p>
+        </div>
+
         <hr class="my-4">
 
-        <div class="output-section" id="resultsSection" style="display:none;">
-            <h5 class="fw-bold mb-3"><i class="fa-solid fa-square-poll-vertical me-2"></i>Предварителен преглед</h5>
+        <!-- Резултати -->
+        <div id="resultsSection" style="display:none;">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-sparkles text-warning me-2"></i>Готов AI Резултат</h5>
             
-            <div class="output-box">
-                <!-- Динамична снимка -->
-                <img id="postImage" src="" class="post-image" alt="Post Visual">
+            <div class="output-card mb-3">
+                <!-- AI Снимка -->
+                <div class="mb-3 text-center">
+                    <img id="postImage" src="" class="post-img shadow-sm" alt="AI Generated Visual">
+                </div>
 
                 <!-- Текст на поста -->
                 <div id="outputText" style="white-space: pre-line;" class="mb-3"></div>
 
-                <!-- Идея за снимка/видео -->
+                <!-- Идея за заснемане -->
                 <div class="idea-box" id="ideaText"></div>
             </div>
 
-            <button class="btn btn-outline-primary btn-sm mt-3 w-100 fw-bold" onclick="copyContent()">
+            <button class="btn btn-outline-primary btn-sm w-100 fw-bold" onclick="copyContent()">
                 <i class="fa-solid fa-copy me-1"></i> Копирай текста на поста
             </button>
         </div>
@@ -93,83 +139,86 @@
 </div>
 
 <script>
-const images = {
-    auto: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
-    welding: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800&q=80",
-    home: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80",
-    food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
-};
-
-const templates = {
-    bg: {
-        auto: {
-            text: "🚗🔥 Вашият автомобил заслужава най-добрата грижа!\n\n[DETAILS]\n\nНие от екипа залагаме на прецизност, висококачествени материали и внимание към всеки детайл.\n\n📞 Запазете своя час за оглед или услуга сега!\n\n#автосервиз #детайлинг #поддръжка #автомобили #качество",
-            idea: "📸 **Съвет за снимка/видео:** Направете близък план (close-up) на капки вода върху прясно полиран детайл или заснемете кратко 5-секундно видео с реакцията 'Преди и След'."
-        },
-        welding: {
-            text: "🛠️💥 Търсите здравина, сигурност и прецизност?\n\n[DETAILS]\n\nИзработваме навеси, врати и специализирани метални конструкции по вашите индивидуални размери!\n\n📞 Свържете се с нас за консултация и оферта!\n\n#заваръчниуслуги #металниконструкции #заваряване #майстор #строителство",
-            idea: "📸 **Съвет за снимка/видео:** Направете снимка на току-що завършения чист заваръчен шев или заснемете видео с искри в забавен кадър (Slow Motion)."
-        },
-        home: {
-            text: "🏠✨ Направете дома си сигурен и комфортен!\n\n[DETAILS]\n\nБърза реакция, коректно отношение и професионално изпълнение за вашия дом.\n\n📞 Пишете ни на лично съобщение или се обадете за оглед!\n\n#ремонти #услугизадома #майстор #качество #дом",
-            idea: "📸 **Съвет за снимка/видео:** Покажете чистата работна площадка след приключване на ремонта или ясна снимка 'Преди / След'."
-        },
-        food: {
-            text: "🍽️😋 Време е за нещо наистина вкусно днес!\n\n[DETAILS]\n\nПриготвено с прясни продукти, много внимание и специален вкус, който ще ви накара да се върнете отново.\n\n📍 Заповядайте при нас или поръчайте за вкъщи!\n\n#храна #вкусно #ресторант #заведение #вкуснахрана",
-            idea: "📸 **Съвет за снимка/видео:** Направете близка снимка на ястието отгоре с добра дневна светлина или кратко клипче как разрязвате/сервирате ястието."
-        }
-    },
-    el: {
-        auto: {
-            text: "🚗🔥 Το αυτοκίνητό σας αξίζει την καλύτερη φροντίδα!\n\n[DETAILS]\n\nΕγγυόμαστε ποιότητα και προσοχή στη λεπτομέρεια.\n\n📞 Κλείστε το ραντεβού σας σήμερα!\n\n#περιποίησηαυτοκινήτου #service #αυτοκίνητο #ποιότητα",
-            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε μια κοντινή φωτογραφία πριν και μετά τον καθαρισμό."
-        },
-        welding: {
-            text: "🛠️💥 Αναζητάτε αντοχή και ακρίβεια στις μεταλλικές κατασκευές;\n\n[DETAILS]\n\nΚατασκευάζουμε υπόστεγα, πόρτες και ειδικές κατασκευές στα μέτρα σας!\n\n📞 Επικοινωνήστε μαζί μας για προσφορά!\n\n#συγκολλήσεις #μεταλλικέςκατασκευές #τεχνικέςεργασίες",
-            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε φωτογραφία τη λεπτομέρεια της συγκόλλησης."
-        },
-        home: {
-            text: "🏠✨ Κάντε το σπίτι σας άνετο και λειτουργικό!\n\n[DETAILS]\n\nΆμεση εξυπηρέτηση και επαγγελματική εργασία.\n\n📞 Καλέστε μας για εκτίμηση στον χώρο σας!\n\n#επισκευές #σπίτι #τεχνικός #ποιότητα",
-            idea: "📸 **Συμβουλή φωτογραφίας:** Φωτογραφίστε το τελικό καθαρό αποτέλεσμα."
-        },
-        food: {
-            text: "🍽️😋 Ώρα για κάτι πραγματικά νόστιμο σήμερα!\n\n[DETAILS]\n\nΦτιαγμένο με φρέσκα υλικά και μεράκι.\n\n📍 Επισκεφθείτε μας σήμερα!\n\n#φαγητό #νόστιμο #εστιατόριο #γεύσεις",
-            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε μια κοντινή φωτογραφία του πιάτου με φυσικό φως."
-        }
-    },
-    en: {
-        auto: {
-            text: "🚗🔥 Your car deserves top-quality care!\n\n[DETAILS]\n\nWe focus on precision, premium products, and attention to detail.\n\n📞 Book your appointment today!\n\n#autocare #detailing #autoservice #quality",
-            idea: "📸 **Photo Tip:** Take a close-up picture of the glossy finish or a 5-second 'Before & After' clip."
-        },
-        welding: {
-            text: "🛠️💥 Looking for durability, safety, and precision?\n\n[DETAILS]\n\nCustom metal structures, gates, and canopies tailored to your needs!\n\n📞 Contact us today for a free estimate!\n\n#welding #metalwork #fabrication #customsteel",
-            idea: "📸 **Photo Tip:** Capture a detailed shot of the clean weld seam or a slow-mo video of the welding process."
-        },
-        home: {
-            text: "🏠✨ Make your home safe and comfortable!\n\n[DETAILS]\n\nFast response, honest pricing, and professional execution.\n\n📞 Contact us for a consultation!\n\n#homerepair #handyman #homeimprovement",
-            idea: "📸 **Photo Tip:** Show the clean finished workspace or a clear Before/After comparison."
-        },
-        food: {
-            text: "🍽️😋 Time for something genuinely delicious today!\n\n[DETAILS]\n\nMade with fresh ingredients and extraordinary taste.\n\n📍 Visit us today or order for pickup!\n\n#food #delicious #restaurant #foodie",
-            idea: "📸 **Photo Tip:** Take a top-down close-up photo of the plate in good natural lighting."
-        }
-    }
-};
-
-function generatePost() {
-    const lang = document.getElementById('language').value;
+async function generateAllWithAI() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const language = document.getElementById('language').value;
     const niche = document.getElementById('niche').value;
-    const details = document.getElementById('details').value || "Професионално изпълнение и гарантирано качество!";
+    const goal = document.getElementById('goal').value;
+    const details = document.getElementById('details').value.trim() || "Професионална услуга и отлично качество.";
 
-    const selectedData = templates[lang][niche];
-    const fullText = selectedData.text.replace("[DETAILS]", details);
+    if (!apiKey) {
+        alert('Моля, въведете вашия Gemini API ключ!');
+        return;
+    }
 
-    document.getElementById('postImage').src = images[niche];
-    document.getElementById('outputText').innerText = fullText;
-    document.getElementById('ideaText').innerHTML = selectedData.idea;
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
 
-    document.getElementById('resultsSection').style.display = 'block';
+    try {
+        // 1. Покана (Prompt) към Gemini за Текст и Идея
+        const promptText = `
+        Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
+        Създай атрактивна публикация за бизнес.
+        Език: ${language}
+        Ниша: ${niche}
+        Цел: ${goal}
+        Допълнителни детайли от собственика: ${details}
+
+        Върни отговора ТОЧНО в следния формат:
+        [TEXT]
+        (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
+        [/TEXT]
+
+        [IDEA]
+        📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
+        [/IDEA]
+
+        [IMAGE_PROMPT]
+        (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта, например: "A professional welder working on metal frame, sparks flying, highly detailed, 8k photography")
+        [/IMAGE_PROMPT]
+        `;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const aiResponse = data.candidates[0].content.parts[0].text;
+
+        // Извличане на частите от отговора
+        const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
+        const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
+        const imgPromptMatch = aiResponse.match(/\[IMAGE_PROMPT\]([\s\S]*?)\[\/IMAGE_PROMPT\]/);
+
+        const generatedText = textMatch ? textMatch[1].trim() : aiResponse;
+        const generatedIdea = ideaMatch ? ideaMatch[1].trim() : "📸 **Съвет:** Заснемете визия от работния процес.";
+        const imagePrompt = imgPromptMatch ? imgPromptMatch[1].trim() : `${niche} professional work`;
+
+        // 2. Генериране на AI снимка чрез Pollinations AI (Безплатно, бързо и без допълнителен ключ)
+        const encodedImagePrompt = encodeURIComponent(imagePrompt);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodedImagePrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
+
+        // Показване на резултатите
+        document.getElementById('outputText').innerText = generatedText;
+        document.getElementById('ideaText').innerHTML = generatedIdea;
+        document.getElementById('postImage').src = imageUrl;
+
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+
+    } catch (err) {
+        document.getElementById('loader').style.display = 'none';
+        alert('Грешка при генерирането: ' + err.message);
+    }
 }
 
 function copyContent() {
@@ -180,4 +229,4 @@ function copyContent() {
 </script>
 
 </body>
-</html>
+</html>                       
