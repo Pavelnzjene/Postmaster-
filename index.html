@@ -8,11 +8,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .hero-card { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px; padding: 30px; }
-        .app-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 25px; margin-top: -30px; }
+        .hero-card { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px; padding: 25px; }
+        .app-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 25px; margin-top: -20px; }
         .btn-custom { background-color: #ff6b6b; color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 8px; transition: all 0.3s; }
         .btn-custom:hover { background-color: #ee5253; color: white; transform: translateY(-2px); }
-        .output-box { background-color: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 10px; padding: 20px; min-height: 200px; position: relative; }
+        .output-box { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .post-image { width: 100%; max-height: 350px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; }
+        .idea-box { background-color: #eef2f7; border-left: 4px solid #2a5298; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -20,10 +22,10 @@
 <div class="container py-4">
     <div class="hero-card text-center">
         <h1 class="fw-bold"><i class="fa-solid fa-paper-plane me-2"></i>PostMaster AI</h1>
-        <p class="lead mb-0">Автоматизирано съдържание за малкия и средния бизнес</p>
+        <p class="lead mb-0">Генератор на богати постове и визии за бизнеса</p>
     </div>
 
-    <div class="app-card mx-auto" style="max-width: 800px;">
+    <div class="app-card mx-auto" style="max-width: 700px;">
         <form id="postForm">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -50,18 +52,18 @@
                     <select class="form-select" id="goal">
                         <option value="promo">💥 Оферта / Промоция</option>
                         <option value="tip">💡 Полезен съвет / Едукация</option>
-                        <option value="portfolio">📸 Показване на изработен проект (Преди/След)</option>
+                        <option value="portfolio">📸 Показване на проект (Преди/След)</option>
                     </select>
                 </div>
 
                 <div class="col-md-12">
-                    <label class="form-label fw-bold"><i class="fa-solid fa-pen me-1"></i> Кратко описание (Оферта)</label>
-                    <textarea class="form-textarea form-control" id="details" rows="3" placeholder="Напр. Отстъпка 15% за полиране на фарове..."></textarea>
+                    <label class="form-label fw-bold"><i class="fa-solid fa-pen me-1"></i> Описание на офертата</label>
+                    <textarea class="form-textarea form-control" id="details" rows="3" placeholder="Напр. Отстъпка 15% за полиране на фарове или Свежа домашна паста днес..."></textarea>
                 </div>
 
                 <div class="col-12 text-center mt-4">
                     <button type="button" class="btn btn-custom w-100" onclick="generatePost()">
-                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Генерирай PostMaster Публикация
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Генерирай Пост + Визия
                     </button>
                 </div>
             </div>
@@ -69,84 +71,88 @@
 
         <hr class="my-4">
 
-        <div class="output-section">
-            <h5 class="fw-bold mb-3"><i class="fa-solid fa-copy me-2"></i>Готова публикация</h5>
-            <div class="output-box" id="outputBox">
-                <span class="text-muted">Попълнете формата и натиснете бутона...</span>
+        <div class="output-section" id="resultsSection" style="display:none;">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-square-poll-vertical me-2"></i>Предварителен преглед</h5>
+            
+            <div class="output-box">
+                <!-- Динамична снимка -->
+                <img id="postImage" src="" class="post-image" alt="Post Visual">
+
+                <!-- Текст на поста -->
+                <div id="outputText" style="white-space: pre-line;" class="mb-3"></div>
+
+                <!-- Идея за снимка/видео -->
+                <div class="idea-box" id="ideaText"></div>
             </div>
-            <button class="btn btn-outline-secondary btn-sm mt-3 w-100" onclick="copyContent()" id="copyBtn" style="display:none;">
-                <i class="fa-solid fa-copy me-1"></i> Копирай целия текст
+
+            <button class="btn btn-outline-primary btn-sm mt-3 w-100 fw-bold" onclick="copyContent()">
+                <i class="fa-solid fa-copy me-1"></i> Копирай текста на поста
             </button>
         </div>
     </div>
 </div>
 
 <script>
+const images = {
+    auto: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80",
+    welding: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=800&q=80",
+    home: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80",
+    food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80"
+};
+
 const templates = {
     bg: {
         auto: {
-            promo: "🔥 Специална оферта за вашия автомобил!\n\nТърсите професионална грижа? [DETAILS]\n\n📞 Запазете час сега!\n\n#автосервиз #детайлинг #поддръжка",
-            tip: "💡 Полезен съвет за всеки шофьор!\n\n[DETAILS]\n\nНе отлагайте поддръжката!\n\n#автосъвети #автосервиз #кола",
-            portfolio: "✨ Поредният успешно завършен проект!\n\nВижте резултата: [DETAILS]\n\n#предиислед #автодетайлинг #ремонт"
+            text: "🚗🔥 Вашият автомобил заслужава най-добрата грижа!\n\n[DETAILS]\n\nНие от екипа залагаме на прецизност, висококачествени материали и внимание към всеки детайл.\n\n📞 Запазете своя час за оглед или услуга сега!\n\n#автосервиз #детайлинг #поддръжка #автомобили #качество",
+            idea: "📸 **Съвет за снимка/видео:** Направете близък план (close-up) на капки вода върху прясно полиран детайл или заснемете кратко 5-секундно видео с реакцията 'Преди и След'."
         },
         welding: {
-            promo: "🛠️ Търсите здравина и прецизност за вашия проект?\n\n[DETAILS]\n\n📞 Свържете се с нас за безплатен оглед!\n\n#заваръчниуслуги #металниконструкции #майстор",
-            tip: "📐 Как да изберете правилната конструкция?\n\n[DETAILS]\n\n#съвети #строителство #металниконструкции",
-            portfolio: "🏆 Завършен обект на 100%!\n\n[DETAILS]\n\nБлагодарим за доверието!\n\n#металнинавеси #заваряване #майстори"
+            text: "🛠️💥 Търсите здравина, сигурност и прецизност?\n\n[DETAILS]\n\nИзработваме навеси, врати и специализирани метални конструкции по вашите индивидуални размери!\n\n📞 Свържете се с нас за консултация и оферта!\n\n#заваръчниуслуги #металниконструкции #заваряване #майстор #строителство",
+            idea: "📸 **Съвет за снимка/видео:** Направете снимка на току-що завършения чист заваръчен шев или заснемете видео с искри в забавен кадър (Slow Motion)."
         },
         home: {
-            promo: "🏠 Имате нужда от надежден майстор у дома?\n\n[DETAILS]\n\nБърза реакция и качествена работа!\n\n#ремонти #дом #майстор",
-            tip: "💡 Как да поддържате дома си в перфектно състояние?\n\n[DETAILS]\n\n#съветизадома #поддръжка #ремонт",
-            portfolio: "✅ Още един доволен клиент!\n\n[DETAILS]\n\n#ремонти #услугизадома #качество"
+            text: "🏠✨ Направете дома си сигурен и комфортен!\n\n[DETAILS]\n\nБърза реакция, коректно отношение и професионално изпълнение за вашия дом.\n\n📞 Пишете ни на лично съобщение или се обадете за оглед!\n\n#ремонти #услугизадома #майстор #качество #дом",
+            idea: "📸 **Съвет за снимка/видео:** Покажете чистата работна площадка след приключване на ремонта или ясна снимка 'Преди / След'."
         },
         food: {
-            promo: "🍔 Гладен ли си? Имаме нещо специално днес!\n\n[DETAILS]\n\nОчакваме те!\n\n#храна #вкусно #ресторант",
-            tip: "👨‍🍳 Тайната на нашия вкус...\n\n[DETAILS]\n\n#кулинария #ресторант #готвене",
-            portfolio: "📸 Вижте какво приготвихме днес!\n\n[DETAILS]\n\n#прясно #вкусно #заведение"
+            text: "🍽️😋 Време е за нещо наистина вкусно днес!\n\n[DETAILS]\n\nПриготвено с прясни продукти, много внимание и специален вкус, който ще ви накара да се върнете отново.\n\n📍 Заповядайте при нас или поръчайте за вкъщи!\n\n#храна #вкусно #ресторант #заведение #вкуснахрана",
+            idea: "📸 **Съвет за снимка/видео:** Направете близка снимка на ястието отгоре с добра дневна светлина или кратко клипче как разрязвате/сервирате ястието."
         }
     },
     el: {
         auto: {
-            promo: "🔥 Ειδική προσφορά για το αυτοκίνητό σας!\n\n[DETAILS]\n\n📞 Κλείστε ραντεβού σήμερα!\n\n#service #αυτοκίνητο",
-            tip: "💡 Χρήσιμη συμβουλή για κάθε οδηγό!\n\n[DETAILS]\n\n#συμβουλές #αυτοκίνητο",
-            portfolio: "✨ Άλλο ένα ολοκληρωμένο έργο!\n\n[DETAILS]\n\n#πρινκαιμετά #service"
+            text: "🚗🔥 Το αυτοκίνητό σας αξίζει την καλύτερη φροντίδα!\n\n[DETAILS]\n\nΕγγυόμαστε ποιότητα και προσοχή στη λεπτομέρεια.\n\n📞 Κλείστε το ραντεβού σας σήμερα!\n\n#περιποίησηαυτοκινήτου #service #αυτοκίνητο #ποιότητα",
+            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε μια κοντινή φωτογραφία πριν και μετά τον καθαρισμό."
         },
         welding: {
-            promo: "🛠️ Αναζητάτε αντοχή και ακρίβεια;\n\n[DETAILS]\n\n📞 Επικοινωνήστε μαζί μας!\n\n#συγκολλήσεις #μεταλλικέςκατασκευές",
-            tip: "📐 Πώς να επιλέξετε τη σωστή κατασκευή;\n\n[DETAILS]\n\n#κατασκευές #μεταλλικέςκατασκευές",
-            portfolio: "🏆 Ολοκληρωμένο έργο 100%!\n\n[DETAILS]\n\n#μεταλλικέςκατασκευές #συγκόλληση"
+            text: "🛠️💥 Αναζητάτε αντοχή και ακρίβεια στις μεταλλικές κατασκευές;\n\n[DETAILS]\n\nΚατασκευάζουμε υπόστεγα, πόρτες και ειδικές κατασκευές στα μέτρα σας!\n\n📞 Επικοινωνήστε μαζί μας για προσφορά!\n\n#συγκολλήσεις #μεταλλικέςκατασκευές #τεχνικέςεργασίες",
+            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε φωτογραφία τη λεπτομέρεια της συγκόλλησης."
         },
         home: {
-            promo: "🏠 Χρειάζεστε αξιόπιστο τεχνικό;\n\n[DETAILS]\n\n#επισκευές #σπίτι #τεχνικός",
-            tip: "💡 Πώς να συντηρήσετε το σπίτι σας;\n\n[DETAILS]\n\n#συμβουλές #συντήρηση",
-            portfolio: "✅ Άλλος ένας ευχαριστημένος πελάτης!\n\n[DETAILS]\n\n#επισκευές #ποιότητα"
+            text: "🏠✨ Κάντε το σπίτι σας άνετο και λειτουργικό!\n\n[DETAILS]\n\nΆμεση εξυπηρέτηση και επαγγελματική εργασία.\n\n📞 Καλέστε μας για εκτίμηση στον χώρο σας!\n\n#επισκευές #σπίτι #τεχνικός #ποιότητα",
+            idea: "📸 **Συμβουλή φωτογραφίας:** Φωτογραφίστε το τελικό καθαρό αποτέλεσμα."
         },
         food: {
-            promo: "🍔 Πεινάτε; Έχουμε κάτι ειδικό σήμερα!\n\n[DETAILS]\n\n#φαγητό #νόστιμο #εστιατόριο",
-            tip: "👨‍🍳 Το μυστικό της γεύσης μας...\n\n[DETAILS]\n\n#μαγειρική #εστιατόριο",
-            portfolio: "📸 Δείτε τι ετοιμάσαμε σήμερα!\n\n[DETAILS]\n\n#φρέσκο #νόστιμο #εστιατόριο"
+            text: "🍽️😋 Ώρα για κάτι πραγματικά νόστιμο σήμερα!\n\n[DETAILS]\n\nΦτιαγμένο με φρέσκα υλικά και μεράκι.\n\n📍 Επισκεφθείτε μας σήμερα!\n\n#φαγητό #νόστιμο #εστιατόριο #γεύσεις",
+            idea: "📸 **Συμβουλή φωτογραφίας:** Βγάλτε μια κοντινή φωτογραφία του πιάτου με φυσικό φως."
         }
     },
     en: {
         auto: {
-            promo: "🔥 Special offer for your vehicle!\n\n[DETAILS]\n\n📞 Book your appointment today!\n\n#autocare #autoservice",
-            tip: "💡 Useful tip for every driver!\n\n[DETAILS]\n\n#cartips #automotive",
-            portfolio: "✨ Another project completed!\n\n[DETAILS]\n\n#beforeandafter #detailing"
+            text: "🚗🔥 Your car deserves top-quality care!\n\n[DETAILS]\n\nWe focus on precision, premium products, and attention to detail.\n\n📞 Book your appointment today!\n\n#autocare #detailing #autoservice #quality",
+            idea: "📸 **Photo Tip:** Take a close-up picture of the glossy finish or a 5-second 'Before & After' clip."
         },
         welding: {
-            promo: "🛠️ Looking for strength and precision?\n\n[DETAILS]\n\n📞 Contact us today!\n\n#welding #metalwork",
-            tip: "📐 How to choose the right metal structure?\n\n[DETAILS]\n\n#metalwork #fabrication",
-            portfolio: "🏆 Project 100% completed!\n\n[DETAILS]\n\n#welding #customsteel"
+            text: "🛠️💥 Looking for durability, safety, and precision?\n\n[DETAILS]\n\nCustom metal structures, gates, and canopies tailored to your needs!\n\n📞 Contact us today for a free estimate!\n\n#welding #metalwork #fabrication #customsteel",
+            idea: "📸 **Photo Tip:** Capture a detailed shot of the clean weld seam or a slow-mo video of the welding process."
         },
         home: {
-            promo: "🏠 Need a reliable handyman?\n\n[DETAILS]\n\n#homerepair #handyman",
-            tip: "💡 How to maintain your home?\n\n[DETAILS]\n\n#hometips #maintenance",
-            portfolio: "✅ Another happy customer!\n\n[DETAILS]\n\n#homerepair #qualitywork"
+            text: "🏠✨ Make your home safe and comfortable!\n\n[DETAILS]\n\nFast response, honest pricing, and professional execution.\n\n📞 Contact us for a consultation!\n\n#homerepair #handyman #homeimprovement",
+            idea: "📸 **Photo Tip:** Show the clean finished workspace or a clear Before/After comparison."
         },
         food: {
-            promo: "🍔 Hungry? We have something special today!\n\n[DETAILS]\n\n#food #delicious #restaurant",
-            tip: "👨‍🍳 The secret to our taste...\n\n[DETAILS]\n\n#culinary #restaurant",
-            portfolio: "📸 Look what we prepared today!\n\n[DETAILS]\n\n#fresh #delicious #food"
+            text: "🍽️😋 Time for something genuinely delicious today!\n\n[DETAILS]\n\nMade with fresh ingredients and extraordinary taste.\n\n📍 Visit us today or order for pickup!\n\n#food #delicious #restaurant #foodie",
+            idea: "📸 **Photo Tip:** Take a top-down close-up photo of the plate in good natural lighting."
         }
     }
 };
@@ -154,24 +160,22 @@ const templates = {
 function generatePost() {
     const lang = document.getElementById('language').value;
     const niche = document.getElementById('niche').value;
-    const goal = document.getElementById('goal').value;
-    const details = document.getElementById('details').value || "Качествено изпълнение в кратки срокове!";
+    const details = document.getElementById('details').value || "Професионално изпълнение и гарантирано качество!";
 
-    let text = "";
-    if(templates[lang] && templates[lang][niche] && templates[lang][niche][goal]){
-        text = templates[lang][niche][goal].replace("[DETAILS]", details);
-    } else {
-        text = `🚀 [PostMaster AI]\n\n${details}\n\n📞 Свържете се с нас!`;
-    }
+    const selectedData = templates[lang][niche];
+    const fullText = selectedData.text.replace("[DETAILS]", details);
 
-    document.getElementById('outputBox').innerText = text;
-    document.getElementById('copyBtn').style.display = 'block';
+    document.getElementById('postImage').src = images[niche];
+    document.getElementById('outputText').innerText = fullText;
+    document.getElementById('ideaText').innerHTML = selectedData.idea;
+
+    document.getElementById('resultsSection').style.display = 'block';
 }
 
 function copyContent() {
-    const text = document.getElementById('outputBox').innerText;
+    const text = document.getElementById('outputText').innerText;
     navigator.clipboard.writeText(text);
-    alert('Текстът е копиран!');
+    alert('Текстът на поста е копиран!');
 }
 </script>
 
