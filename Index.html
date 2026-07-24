@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostMaster AI - Софтуер за Социални Мрежи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero-card { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px; padding: 30px; }
+        .app-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 25px; margin-top: -30px; }
+        .btn-custom { background-color: #ff6b6b; color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 8px; transition: all 0.3s; }
+        .btn-custom:hover { background-color: #ee5253; color: white; transform: translateY(-2px); }
+        .output-box { background-color: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 10px; padding: 20px; min-height: 200px; position: relative; }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="hero-card text-center">
+        <h1 class="fw-bold"><i class="fa-solid fa-paper-plane me-2"></i>PostMaster AI</h1>
+        <p class="lead mb-0">Автоматизирано съдържание за малкия и средния бизнес</p>
+    </div>
+
+    <div class="app-card mx-auto" style="max-width: 800px;">
+        <form id="postForm">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-globe me-1"></i> Език / Language</label>
+                    <select class="form-select" id="language">
+                        <option value="bg" selected>🇧🇬 Български</option>
+                        <option value="el">🇬🇷 Ελληνικά (Гръцки)</option>
+                        <option value="en">🇬🇧 English (Английски)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-briefcase me-1"></i> Бизнес ниша</label>
+                    <select class="form-select" id="niche">
+                        <option value="auto">🚗 Автосервиз & Детайлинг</option>
+                        <option value="welding">🛠️ Заварчици & Строителство</option>
+                        <option value="home">🏠 Услуги за дома (ВИК, Климатици)</option>
+                        <option value="food">🍽️ Заведение & Ресторант</option>
+                    </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-bullhorn me-1"></i> Цел на публикацията</label>
+                    <select class="form-select" id="goal">
+                        <option value="promo">💥 Оферта / Промоция</option>
+                        <option value="tip">💡 Полезен съвет / Едукация</option>
+                        <option value="portfolio">📸 Показване на изработен проект (Преди/След)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label fw-bold"><i class="fa-solid fa-pen me-1"></i> Кратко описание (Оферта)</label>
+                    <textarea class="form-textarea form-control" id="details" rows="3" placeholder="Напр. Отстъпка 15% за полиране на фарове..."></textarea>
+                </div>
+
+                <div class="col-12 text-center mt-4">
+                    <button type="button" class="btn btn-custom w-100" onclick="generatePost()">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i>Генерирай PostMaster Публикация
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <div class="output-section">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-copy me-2"></i>Готова публикация</h5>
+            <div class="output-box" id="outputBox">
+                <span class="text-muted">Попълнете формата и натиснете бутона...</span>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm mt-3 w-100" onclick="copyContent()" id="copyBtn" style="display:none;">
+                <i class="fa-solid fa-copy me-1"></i> Копирай целия текст
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const templates = {
+    bg: {
+        auto: {
+            promo: "🔥 Специална оферта за вашия автомобил!\n\nТърсите професионална грижа? [DETAILS]\n\n📞 Запазете час сега!\n\n#автосервиз #детайлинг #поддръжка",
+            tip: "💡 Полезен съвет за всеки шофьор!\n\n[DETAILS]\n\nНе отлагайте поддръжката!\n\n#автосъвети #автосервиз #кола",
+            portfolio: "✨ Поредният успешно завършен проект!\n\nВижте резултата: [DETAILS]\n\n#предиислед #автодетайлинг #ремонт"
+        },
+        welding: {
+            promo: "🛠️ Търсите здравина и прецизност за вашия проект?\n\n[DETAILS]\n\n📞 Свържете се с нас за безплатен оглед!\n\n#заваръчниуслуги #металниконструкции #майстор",
+            tip: "📐 Как да изберете правилната конструкция?\n\n[DETAILS]\n\n#съвети #строителство #металниконструкции",
+            portfolio: "🏆 Завършен обект на 100%!\n\n[DETAILS]\n\nБлагодарим за доверието!\n\n#металнинавеси #заваряване #майстори"
+        },
+        home: {
+            promo: "🏠 Имате нужда от надежден майстор у дома?\n\n[DETAILS]\n\nБърза реакция и качествена работа!\n\n#ремонти #дом #майстор",
+            tip: "💡 Как да поддържате дома си в перфектно състояние?\n\n[DETAILS]\n\n#съветизадома #поддръжка #ремонт",
+            portfolio: "✅ Още един доволен клиент!\n\n[DETAILS]\n\n#ремонти #услугизадома #качество"
+        },
+        food: {
+            promo: "🍔 Гладен ли си? Имаме нещо специално днес!\n\n[DETAILS]\n\nОчакваме те!\n\n#храна #вкусно #ресторант",
+            tip: "👨‍🍳 Тайната на нашия вкус...\n\n[DETAILS]\n\n#кулинария #ресторант #готвене",
+            portfolio: "📸 Вижте какво приготвихме днес!\n\n[DETAILS]\n\n#прясно #вкусно #заведение"
+        }
+    },
+    el: {
+        auto: {
+            promo: "🔥 Ειδική προσφορά για το αυτοκίνητό σας!\n\n[DETAILS]\n\n📞 Κλείστε ραντεβού σήμερα!\n\n#service #αυτοκίνητο",
+            tip: "💡 Χρήσιμη συμβουλή για κάθε οδηγό!\n\n[DETAILS]\n\n#συμβουλές #αυτοκίνητο",
+            portfolio: "✨ Άλλο ένα ολοκληρωμένο έργο!\n\n[DETAILS]\n\n#πρινκαιμετά #service"
+        },
+        welding: {
+            promo: "🛠️ Αναζητάτε αντοχή και ακρίβεια;\n\n[DETAILS]\n\n📞 Επικοινωνήστε μαζί μας!\n\n#συγκολλήσεις #μεταλλικέςκατασκευές",
+            tip: "📐 Πώς να επιλέξετε τη σωστή κατασκευή;\n\n[DETAILS]\n\n#κατασκευές #μεταλλικέςκατασκευές",
+            portfolio: "🏆 Ολοκληρωμένο έργο 100%!\n\n[DETAILS]\n\n#μεταλλικέςκατασκευές #συγκόλληση"
+        },
+        home: {
+            promo: "🏠 Χρειάζεστε αξιόπιστο τεχνικό;\n\n[DETAILS]\n\n#επισκευές #σπίτι #τεχνικός",
+            tip: "💡 Πώς να συντηρήσετε το σπίτι σας;\n\n[DETAILS]\n\n#συμβουλές #συντήρηση",
+            portfolio: "✅ Άλλος ένας ευχαριστημένος πελάτης!\n\n[DETAILS]\n\n#επισκευές #ποιότητα"
+        },
+        food: {
+            promo: "🍔 Πεινάτε; Έχουμε κάτι ειδικό σήμερα!\n\n[DETAILS]\n\n#φαγητό #νόστιμο #εστιατόριο",
+            tip: "👨‍🍳 Το μυστικό της γεύσης μας...\n\n[DETAILS]\n\n#μαγειρική #εστιατόριο",
+            portfolio: "📸 Δείτε τι ετοιμάσαμε σήμερα!\n\n[DETAILS]\n\n#φρέσκο #νόστιμο #εστιατόριο"
+        }
+    },
+    en: {
+        auto: {
+            promo: "🔥 Special offer for your vehicle!\n\n[DETAILS]\n\n📞 Book your appointment today!\n\n#autocare #autoservice",
+            tip: "💡 Useful tip for every driver!\n\n[DETAILS]\n\n#cartips #automotive",
+            portfolio: "✨ Another project completed!\n\n[DETAILS]\n\n#beforeandafter #detailing"
+        },
+        welding: {
+            promo: "🛠️ Looking for strength and precision?\n\n[DETAILS]\n\n📞 Contact us today!\n\n#welding #metalwork",
+            tip: "📐 How to choose the right metal structure?\n\n[DETAILS]\n\n#metalwork #fabrication",
+            portfolio: "🏆 Project 100% completed!\n\n[DETAILS]\n\n#welding #customsteel"
+        },
+        home: {
+            promo: "🏠 Need a reliable handyman?\n\n[DETAILS]\n\n#homerepair #handyman",
+            tip: "💡 How to maintain your home?\n\n[DETAILS]\n\n#hometips #maintenance",
+            portfolio: "✅ Another happy customer!\n\n[DETAILS]\n\n#homerepair #qualitywork"
+        },
+        food: {
+            promo: "🍔 Hungry? We have something special today!\n\n[DETAILS]\n\n#food #delicious #restaurant",
+            tip: "👨‍🍳 The secret to our taste...\n\n[DETAILS]\n\n#culinary #restaurant",
+            portfolio: "📸 Look what we prepared today!\n\n[DETAILS]\n\n#fresh #delicious #food"
+        }
+    }
+};
+
+function generatePost() {
+    const lang = document.getElementById('language').value;
+    const niche = document.getElementById('niche').value;
+    const goal = document.getElementById('goal').value;
+    const details = document.getElementById('details').value || "Качествено изпълнение в кратки срокове!";
+
+    let text = "";
+    if(templates[lang] && templates[lang][niche] && templates[lang][niche][goal]){
+        text = templates[lang][niche][goal].replace("[DETAILS]", details);
+    } else {
+        text = `🚀 [PostMaster AI]\n\n${details}\n\n📞 Свържете се с нас!`;
+    }
+
+    document.getElementById('outputBox').innerText = text;
+    document.getElementById('copyBtn').style.display = 'block';
+}
+
+function copyContent() {
+    const text = document.getElementById('outputBox').innerText;
+    navigator.clipboard.writeText(text);
+    alert('Текстът е копиран!');
+}
+</script>
+
+</body>
+</html>
