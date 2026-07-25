@@ -177,10 +177,10 @@ async function generateAllWithAI() {
         [/IMAGE_PROMPT]
         `;
 
-        // Обновен адрес за закриване на новия модел gemini-2.0-flash
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // Стабилен v1 ендпоинт за Gemini 2.0 Flash
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-        let response = await fetch(url, {
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -189,20 +189,6 @@ async function generateAllWithAI() {
                 }]
             })
         });
-
-        // Резервен опит с gemini-2.0-flash-exp при случай, че стандартният v1beta се разминава
-        if (!response.ok) {
-            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
-            response = await fetch(fallbackUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: promptText }]
-                    }]
-                })
-            });
-        }
 
         const data = await response.json();
         
