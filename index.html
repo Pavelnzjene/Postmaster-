@@ -177,10 +177,10 @@ async function generateAllWithAI() {
         [/IMAGE_PROMPT]
         `;
 
-        // Правилен адрес за извикване на Gemini API
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // Обновен адрес за закриване на новия модел gemini-2.0-flash
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-        const response = await fetch(url, {
+        let response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -189,6 +189,20 @@ async function generateAllWithAI() {
                 }]
             })
         });
+
+        // Резервен опит с gemini-2.0-flash-exp при случай, че стандартният v1beta се разминава
+        if (!response.ok) {
+            const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+            response = await fetch(fallbackUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }]
+                })
+            });
+        }
 
         const data = await response.json();
         
@@ -206,7 +220,7 @@ async function generateAllWithAI() {
         const generatedIdea = ideaMatch ? ideaMatch[1].trim() : "📸 **Съвет:** Заснемете визия от работния процес.";
         const imagePrompt = imgPromptMatch ? imgPromptMatch[1].trim() : `${niche} professional work`;
 
-        // Генериране на снимката
+        // Генериране на снимката през Pollinations AI
         const encodedImagePrompt = encodeURIComponent(imagePrompt);
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedImagePrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
 
@@ -233,4 +247,3 @@ function copyContent() {
 </body>
 </html>
 
-        
