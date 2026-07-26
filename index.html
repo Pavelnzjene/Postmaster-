@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
@@ -132,8 +132,7 @@
             </div>
 
             <button class="btn btn-outline-primary btn-sm w-100 fw-bold" onclick="copyContent()">
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
+                <i class="fa-solid fa-copy me-1"></i> Копирай текста на поста
             </button>
         </div>
     </div>
@@ -155,50 +154,65 @@ async function generateAllWithAI() {
     document.getElementById('loader').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'none';
 
-    try {
-        const promptText = `
-        Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
-        Създай атрактивна публикация за бизнес.
-        Език: ${language}
-        Ниша: ${niche}
-        Цел: ${goal}
-        Допълнителни детайли от собственика: ${details}
+    const promptText = `
+    Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
+    Създай атрактивна публикация за бизнес.
+    Език: ${language}
+    Ниша: ${niche}
+    Цел: ${goal}
+    Допълнителни детайли от собственика: ${details}
 
-        Върни отговора ТОЧНО в следния формат:
-        [TEXT]
-        (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
-        [/TEXT]
+    Върни отговора ТОЧНО в следния формат:
+    [TEXT]
+    (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
+    [/TEXT]
 
-        [IDEA]
-        📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
-        [/IDEA]
+    [IDEA]
+    📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
+    [/IDEA]
 
-        [IMAGE_PROMPT]
-        (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта, например: "A professional welder working on metal frame, sparks flying, highly detailed, 8k photography")
-        [/IMAGE_PROMPT]
-        `;
+    [IMAGE_PROMPT]
+    (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта)
+    [/IMAGE_PROMPT]
+    `;
 
-        // Най-стабилният безплатен ендпоинт без лимита за gemini-2.0
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // Списък с модели за последователен опит
+    const models = [
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent'
+    ];
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            })
-        });
+    let aiResponse = null;
+    let lastError = '';
 
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error.message);
+    for (const endpoint of models) {
+        try {
+            const res = await fetch(`${endpoint}?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                aiResponse = data.candidates[0].content.parts[0].text;
+                break; // Успешно извикване!
+            } else if (data.error) {
+                lastError = data.error.message;
+            }
+        } catch (e) {
+            lastError = e.message;
         }
+    }
 
-        const aiResponse = data.candidates[0].content.parts[0].text;
+    if (!aiResponse) {
+        document.getElementById('loader').style.display = 'none';
+        alert('Грешка при генерирането: ' + lastError);
+        return;
+    }
 
+    try {
         const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
         const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
         const imgPromptMatch = aiResponse.match(/\[IMAGE_PROMPT\]([\s\S]*?)\[\/IMAGE_PROMPT\]/);
@@ -220,7 +234,7 @@ async function generateAllWithAI() {
 
     } catch (err) {
         document.getElementById('loader').style.display = 'none';
-        alert('Грешка при генерирането: ' + err.message);
+        alert('Грешка при обработката: ' + err.message);
     }
 }
 
