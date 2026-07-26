@@ -176,28 +176,47 @@ async function generateAllWithAI() {
     [/IMAGE_PROMPT]
     `;
 
-    // Оfficial REST API endpoint за Gemini 2.0 Flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    // Списък от алтернативни модели (заобикаляне на limit: 0)
+    const modelUrls = [
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
+    ];
+
+    let aiResponse = null;
+    let lastError = "";
+
+    // Цикъл, който автоматично пробва следващия модел при грешка за квота
+    for (const url of modelUrls) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                aiResponse = data.candidates[0].content.parts[0].text;
+                break; // Успешно генерирано! Излизаме от цикъла.
+            } else if (data.error) {
+                lastError = data.error.message;
+            }
+        } catch (e) {
+            lastError = e.message;
+        }
+    }
+
+    if (!aiResponse) {
+        document.getElementById('loader').style.display = 'none';
+        alert('Грешка при генерирането: ' + lastError);
+        return;
+    }
 
     try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-
-        const aiResponse = data.candidates[0].content.parts[0].text;
-
         const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
         const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
         const imgPromptMatch = aiResponse.match(/\[IMAGE_PROMPT\]([\s\S]*?)\[\/IMAGE_PROMPT\]/);
@@ -219,7 +238,7 @@ async function generateAllWithAI() {
 
     } catch (err) {
         document.getElementById('loader').style.display = 'none';
-        alert('Грешка при генерирането: ' + err.message);
+        alert('Грешка при обработката: ' + err.message);
     }
 }
 
