@@ -92,7 +92,7 @@
 
                 <!-- Бутон за генериране -->
                 <div class="col-12 text-center mt-4">
-                    <button type="button" class="btn btn-magic w-100" onclick="generateNoKeyAI()">
+                    <button type="button" class="btn btn-magic w-100" onclick="generatePost()">
                         <i class="fa-solid fa-bolt me-2"></i> Генерирай Пост с 1 Клик
                     </button>
                 </div>
@@ -102,7 +102,7 @@
         <!-- Loader -->
         <div class="loader" id="loader">
             <div class="spinner-border text-primary my-3" role="status"></div>
-            <p class="fw-bold text-secondary">AI генерира уникален текст и снимка... Изчакайте секунда!</p>
+            <p class="fw-bold text-secondary">AI генерира уникален текст и снимка... Моля, изчакайте!</p>
         </div>
 
         <hr class="my-4">
@@ -112,15 +112,10 @@
             <h5 class="fw-bold mb-3"><i class="fa-solid fa-sparkles text-warning me-2"></i>Готов AI Резултат</h5>
             
             <div class="output-card mb-3">
-                <!-- AI Снимка -->
                 <div class="mb-3 text-center">
                     <img id="postImage" src="" class="post-img shadow-sm" alt="AI Generated Visual">
                 </div>
-
-                <!-- Текст на поста -->
                 <div id="outputText" style="white-space: pre-line;" class="mb-3"></div>
-
-                <!-- Идея за заснемане -->
                 <div class="idea-box" id="ideaText"></div>
             </div>
 
@@ -132,28 +127,63 @@
 </div>
 
 <script>
-async function generateNoKeyAI() {
+async function generatePost() {
     const language = document.getElementById('language').value;
     const niche = document.getElementById('niche').value;
     const goal = document.getElementById('goal').value;
-    const details = document.getElementById('details').value.trim() || "Професионални услуги и високо качество.";
+    const details = document.getElementById('details').value.trim() || "Професионални услуги и отлично качество.";
 
     document.getElementById('loader').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'none';
 
-    const systemPrompt = `Напиши грабващ публикация за социални мрежи за бизнес в ниша "${niche}". Език: ${language}. Цел: ${goal}. Допълнителни детайли: ${details}. Използвай подходящи емоджита, добра структура, призив за контакт и 5 хаштага.`;
+    const promptText = `
+    Ти си експерт по маркетинг за социални мрежи. Създай атрактивна публикация.
+    Език: ${language}
+    Ниша: ${niche}
+    Цел: ${goal}
+    Детайли: ${details}
+
+    Върни отговора в следния формат:
+    [TEXT]
+    (Текст за социалните мрежи с емотикони, структура и хаштагове)
+    [/TEXT]
+
+    [IDEA]
+    📸 **Съвет за заснемане:** (Кратък съвет какво видео/снимка да направят)
+    [/IDEA]
+
+    [IMAGE_PROMPT]
+    (Кратко описание на английски за снимката)
+    [/IMAGE_PROMPT]
+    `;
 
     try {
-        // Ползваме напълно безплатния публичен ендпоинт без параметър model=openai
-        const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(systemPrompt)}`);
-        const generatedText = await response.text();
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ promptText })
+        });
 
-        // Снимка
-        const imagePrompt = `${niche} service professional photo, high quality, 8k`;
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 10000)}`;
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        const aiResponse = data.candidates[0].content.parts[0].text;
+
+        const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
+        const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
+        const imgPromptMatch = aiResponse.match(/\[IMAGE_PROMPT\]([\s\S]*?)\[\/IMAGE_PROMPT\]/);
+
+        const generatedText = textMatch ? textMatch[1].trim() : aiResponse;
+        const generatedIdea = ideaMatch ? ideaMatch[1].trim() : "📸 **Съвет:** Заснемете визия от работния процес.";
+        const imagePrompt = imgPromptMatch ? imgPromptMatch[1].trim() : `${niche} professional work`;
+
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
 
         document.getElementById('outputText').innerText = generatedText;
-        document.getElementById('ideaText').innerHTML = `📸 **Идея за снимка/видео:** Заснемете кратък кадър от работния процес или завършения резултат при клиента.`;
+        document.getElementById('ideaText').innerHTML = generatedIdea;
         document.getElementById('postImage').src = imageUrl;
 
         document.getElementById('loader').style.display = 'none';
@@ -161,7 +191,7 @@ async function generateNoKeyAI() {
 
     } catch (err) {
         document.getElementById('loader').style.display = 'none';
-        alert('Грешка при генерирането: ' + err.message);
+        alert('Грешка: ' + err.message);
     }
 }
 
