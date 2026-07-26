@@ -99,7 +99,7 @@
 
                 <!-- Бутон за генериране -->
                 <div class="col-12 text-center mt-4">
-                    <button type="button" class="btn btn-magic w-100" id="generateBtn">
+                    <button type="button" class="btn btn-magic w-100" onclick="generateAllWithAI()">
                         <i class="fa-solid fa-bolt me-2"></i> Генерирай Всичко с 1 Клик (AI)
                     </button>
                 </div>
@@ -138,18 +138,8 @@
     </div>
 </div>
 
-<script type="importmap">
-  {
-    "imports": {
-      "@google/genai": "https://esm.sh/@google/genai@0.1.1"
-    }
-  }
-</script>
-
-<script type="module">
-import { GoogleGenAI } from "@google/genai";
-
-document.getElementById('generateBtn').addEventListener('click', async () => {
+<script>
+async function generateAllWithAI() {
     const apiKey = document.getElementById('apiKey').value.trim();
     const language = document.getElementById('language').value;
     const niche = document.getElementById('niche').value;
@@ -164,38 +154,49 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     document.getElementById('loader').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'none';
 
+    const promptText = `
+    Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
+    Създай атрактивна публикация за бизнес.
+    Език: ${language}
+    Ниша: ${niche}
+    Цел: ${goal}
+    Допълнителни детайли от собственика: ${details}
+
+    Върни отговора ТОЧНО в следния формат:
+    [TEXT]
+    (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
+    [/TEXT]
+
+    [IDEA]
+    📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
+    [/IDEA]
+
+    [IMAGE_PROMPT]
+    (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта)
+    [/IMAGE_PROMPT]
+    `;
+
+    // Оfficial REST API endpoint за Gemini 2.0 Flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
     try {
-        const ai = new GoogleGenAI({ apiKey: apiKey });
-
-        const promptText = `
-        Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
-        Създай атрактивна публикация за бизнес.
-        Език: ${language}
-        Ниша: ${niche}
-        Цел: ${goal}
-        Допълнителни детайли от собственика: ${details}
-
-        Върни отговора ТОЧНО в следния формат:
-        [TEXT]
-        (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
-        [/TEXT]
-
-        [IDEA]
-        📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
-        [/IDEA]
-
-        [IMAGE_PROMPT]
-        (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта)
-        [/IMAGE_PROMPT]
-        `;
-
-        // Използваме стандартния модел през официалния SDK
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: promptText,
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: promptText }]
+                }]
+            })
         });
 
-        const aiResponse = response.text;
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const aiResponse = data.candidates[0].content.parts[0].text;
 
         const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
         const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
@@ -205,7 +206,7 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         const generatedIdea = ideaMatch ? ideaMatch[1].trim() : "📸 **Съвет:** Заснемете визия от работния процес.";
         const imagePrompt = imgPromptMatch ? imgPromptMatch[1].trim() : `${niche} professional work`;
 
-        // Генериране на снимката
+        // Генериране на снимката през Pollinations AI
         const encodedImagePrompt = encodeURIComponent(imagePrompt);
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedImagePrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
 
@@ -220,10 +221,8 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         document.getElementById('loader').style.display = 'none';
         alert('Грешка при генерирането: ' + err.message);
     }
-});
-</script>
+}
 
-<script>
 function copyContent() {
     const text = document.getElementById('outputText').innerText;
     navigator.clipboard.writeText(text);
@@ -233,4 +232,3 @@ function copyContent() {
 
 </body>
 </html>
-
