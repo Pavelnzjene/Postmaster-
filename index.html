@@ -99,7 +99,7 @@
 
                 <!-- Бутон за генериране -->
                 <div class="col-12 text-center mt-4">
-                    <button type="button" class="btn btn-magic w-100" onclick="generateAllWithAI()">
+                    <button type="button" class="btn btn-magic w-100" id="generateBtn">
                         <i class="fa-solid fa-bolt me-2"></i> Генерирай Всичко с 1 Клик (AI)
                     </button>
                 </div>
@@ -138,8 +138,18 @@
     </div>
 </div>
 
-<script>
-async function generateAllWithAI() {
+<script type="importmap">
+  {
+    "imports": {
+      "@google/genai": "https://esm.sh/@google/genai@0.1.1"
+    }
+  }
+</script>
+
+<script type="module">
+import { GoogleGenAI } from "@google/genai";
+
+document.getElementById('generateBtn').addEventListener('click', async () => {
     const apiKey = document.getElementById('apiKey').value.trim();
     const language = document.getElementById('language').value;
     const niche = document.getElementById('niche').value;
@@ -154,65 +164,39 @@ async function generateAllWithAI() {
     document.getElementById('loader').style.display = 'block';
     document.getElementById('resultsSection').style.display = 'none';
 
-    const promptText = `
-    Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
-    Създай атрактивна публикация за бизнес.
-    Език: ${language}
-    Ниша: ${niche}
-    Цел: ${goal}
-    Допълнителни детайли от собственика: ${details}
-
-    Върни отговора ТОЧНО в следния формат:
-    [TEXT]
-    (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
-    [/TEXT]
-
-    [IDEA]
-    📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
-    [/IDEA]
-
-    [IMAGE_PROMPT]
-    (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта)
-    [/IMAGE_PROMPT]
-    `;
-
-    // Списък с модели за последователен опит
-    const models = [
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent'
-    ];
-
-    let aiResponse = null;
-    let lastError = '';
-
-    for (const endpoint of models) {
-        try {
-            const res = await fetch(`${endpoint}?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-            });
-
-            const data = await res.json();
-            if (res.ok && data.candidates && data.candidates[0].content.parts[0].text) {
-                aiResponse = data.candidates[0].content.parts[0].text;
-                break; // Успешно извикване!
-            } else if (data.error) {
-                lastError = data.error.message;
-            }
-        } catch (e) {
-            lastError = e.message;
-        }
-    }
-
-    if (!aiResponse) {
-        document.getElementById('loader').style.display = 'none';
-        alert('Грешка при генерирането: ' + lastError);
-        return;
-    }
-
     try {
+        const ai = new GoogleGenAI({ apiKey: apiKey });
+
+        const promptText = `
+        Ти си експерт по маркетинг за социални мрежи (Facebook, Instagram, TikTok).
+        Създай атрактивна публикация за бизнес.
+        Език: ${language}
+        Ниша: ${niche}
+        Цел: ${goal}
+        Допълнителни детайли от собственика: ${details}
+
+        Върни отговора ТОЧНО в следния формат:
+        [TEXT]
+        (Тук напиши завладяващ текст за социалните мрежи с емотикони, структура, призив за действие/телефон и подходящи хаштагове)
+        [/TEXT]
+
+        [IDEA]
+        📸 **Съвет за заснемане (Снимка/Видео):** (Напиши кратък, конкретен съвет за собственика каква снимка или видео да заснеме на терен)
+        [/IDEA]
+
+        [IMAGE_PROMPT]
+        (Напиши кратко описание на английски език за фотореалистична снимка, описваща тази ниша и оферта)
+        [/IMAGE_PROMPT]
+        `;
+
+        // Използваме стандартния модел през официалния SDK
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: promptText,
+        });
+
+        const aiResponse = response.text;
+
         const textMatch = aiResponse.match(/\[TEXT\]([\s\S]*?)\[\/TEXT\]/);
         const ideaMatch = aiResponse.match(/\[IDEA\]([\s\S]*?)\[\/IDEA\]/);
         const imgPromptMatch = aiResponse.match(/\[IMAGE_PROMPT\]([\s\S]*?)\[\/IMAGE_PROMPT\]/);
@@ -234,10 +218,12 @@ async function generateAllWithAI() {
 
     } catch (err) {
         document.getElementById('loader').style.display = 'none';
-        alert('Грешка при обработката: ' + err.message);
+        alert('Грешка при генерирането: ' + err.message);
     }
-}
+});
+</script>
 
+<script>
 function copyContent() {
     const text = document.getElementById('outputText').innerText;
     navigator.clipboard.writeText(text);
@@ -247,3 +233,4 @@ function copyContent() {
 
 </body>
 </html>
+
