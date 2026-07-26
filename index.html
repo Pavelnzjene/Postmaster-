@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
@@ -177,8 +177,8 @@ async function generateAllWithAI() {
         [/IMAGE_PROMPT]
         `;
 
-        // Стабилен v1 ендпоинт за Gemini 2.0 Flash
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // Най-стабилният безплатен ендпоинт без лимита за gemini-2.0
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -206,7 +206,7 @@ async function generateAllWithAI() {
         const generatedIdea = ideaMatch ? ideaMatch[1].trim() : "📸 **Съвет:** Заснемете визия от работния процес.";
         const imagePrompt = imgPromptMatch ? imgPromptMatch[1].trim() : `${niche} professional work`;
 
-        // Генериране на снимката през Pollinations AI
+        // Генериране на снимката
         const encodedImagePrompt = encodeURIComponent(imagePrompt);
         const imageUrl = `https://image.pollinations.ai/prompt/${encodedImagePrompt}?width=800&height=600&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
 
@@ -232,4 +232,3 @@ function copyContent() {
 
 </body>
 </html>
-
