@@ -43,14 +43,27 @@
                 </select>
             </div>
 
+            <!-- Заменено с падащо меню за професии -->
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">🏪 Бизнес / Ниша</label>
-                <input type="text" id="business" placeholder="напр. Автодетайлинг, Автосервиз, Недвижими имоти..." class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">💼 Избери Професия / Бизнес</label>
+                <select id="business" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="" disabled selected>-- Избери от списъка --</option>
+                    <option value="Автодетайлинг и полиране">🚗 Автодетайлинг & Козметика</option>
+                    <option value="Автосервиз и ремонти">🔧 Автосервиз & Механик</option>
+                    <option value="Недвижими имоти и продажби">🏠 Недвижими имоти</option>
+                    <option value="Строителство и заваръчни услуги">🏗️ Строителство & Заваръчни услуги</option>
+                    <option value="Застрахователен консултант">🛡️ Застрахователен агент / Консултант</option>
+                    <option value="Салон за красота и фризьорство">✂️ Салон за красота / Фризьор</option>
+                    <option value="Фитнес треньор и здраве">🏋️ Фитнес треньор / Здраве</option>
+                    <option value="Заведение, кафе или ресторант">☕ Ресторант / Кафене</option>
+                    <option value="Онлайн магазин и търговия">🛒 Онлайн магазин</option>
+                    <option value="Други професионални услуги">💼 Други услуги</option>
+                </select>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">🎯 Цел на поста / Детайли</label>
-                <textarea id="details" rows="3" placeholder="напр. Промоция на активна пяна, почистване на джанти, запиши се за час..." class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">🎯 Цел на поста / Детайли (Опционално)</label>
+                <textarea id="details" rows="3" placeholder="напр. Промоция за месеца, нов продукт, специална отстъпка..." class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
             </div>
 
             <button id="generateBtn" onclick="generatePost()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-lg">
@@ -84,14 +97,14 @@
     <script>
         async function generatePost() {
             const language = document.getElementById('language').value;
-            const business = document.getElementById('business').value.trim();
+            const business = document.getElementById('business').value;
             const details = document.getElementById('details').value.trim();
             const btn = document.getElementById('generateBtn');
             const loading = document.getElementById('loading');
             const result = document.getElementById('result');
 
             if (!business) {
-                alert('Моля, въведете вашия бизнес или ниша!');
+                alert('Моля, изберете вашата професия/бизнес от менюто!');
                 return;
             }
 
@@ -102,7 +115,7 @@
 
             const prompt = `Ти си професионален социален медиен маркетолог. Създай атрактивен пост за Facebook/Instagram на език: ${language}.
 Бизнес/Ниша: ${business}
-Допълнителни детайли/Цел: ${details}
+Допълнителни детайли/Цел: ${details || 'Обща презентация и привличане на клиенти'}
 
 Върни отговора точно в следния формат:
 [ПОСТ]
@@ -112,7 +125,6 @@
 (Тук опиши накратко каква снимка или видео да заснеме/генерира потребителят, за да съответства на поста)`;
 
             try {
-                // Използваме серверния маршрут на Vercel или директна заявка през променливата
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
