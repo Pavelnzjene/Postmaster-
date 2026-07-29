@@ -1,50 +1,160 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API Key не е конфигуриран във Vercel.' });
-  }
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostMaster AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffffff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
+    <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white text-center">
+            <h1 class="text-3xl font-bold flex items-center justify-center gap-2">
+                ✨ PostMaster AI
+            </h1>
+            <p class="text-blue-100 mt-2 text-sm">
+                Създай пълен пост (Текст + Идея за заснемане + Уникална AI Снимка) с 1 клик
+            </p>
+        </div>
 
-  const { prompt } = req.body;
-  if (!prompt) {
-    return res.status(400).json({ error: 'Промптът е празен.' });
-  }
+        <!-- Form -->
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">🌐 Език на публикацията</label>
+                <select id="language" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="Български">🇧🇬 Български</option>
+                    <option value="English">🇬🇧 English</option>
+                    <option value="Greek">🇬🇷 Ελληνικά</option>
+                </select>
+            </div>
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">💼 Избери Професия / Бизнес</label>
+                <select id="business" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    <option value="" disabled selected>-- Избери от списъка --</option>
+                    <option value="Автодетайлинг и полиране">🚗 Автодетайлинг & Козметика</option>
+                    <option value="Автосервиз и ремонти">🔧 Автосервиз & Механик</option>
+                    <option value="Недвижими имоти и продажби">🏠 Недвижими имоти</option>
+                    <option value="Строителство и заваръчни услуги">🏗️ Строителство & Заваръчни услуги</option>
+                    <option value="Застрахователен консултант">🛡️ Застрахователен агент / Консултант</option>
+                    <option value="Салон за красота и фризьорство">✂️ Салон за красота / Фризьор</option>
+                    <option value="Фитнес треньор и здраве">🏋️ Фитнес треньор / Здраве</option>
+                    <option value="Заведение, кафе или ресторант">☕ Ресторант / Кафене</option>
+                    <option value="Онлайн магазин и търговия">🛒 Онлайн магазин</option>
+                    <option value="Други професионални услуги">💼 Други услуги</option>
+                </select>
+            </div>
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ]
-      }),
-    });
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">🎯 Цел на поста / Детайли (Опционално)</label>
+                <textarea id="details" rows="3" placeholder="напр. Промоция за месеца, нов продукт, специална отстъпка..." class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+            </div>
 
-    const data = await response.json();
+            <button id="generateBtn" onclick="generatePost()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-lg">
+                ⚡ Генерирай Пост с 1 Клик
+            </button>
+        </div>
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Грешка при заявката към Gemini.');
-    }
+        <!-- Loading Indicator -->
+        <div id="loading" class="hidden p-8 text-center bg-gray-50 border-t border-gray-100">
+            <div class="spinner mx-auto mb-4 border-top-blue-600" style="border-top-color: #2563eb;"></div>
+            <p class="text-gray-700 font-medium">AI генерира уникален текст и идея за снимка...</p>
+            <p class="text-xs text-gray-500 mt-1">Моля, изчакайте няколко секунди!</p>
+        </div>
 
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    return res.status(200).json({ text: generatedText });
+        <!-- Result -->
+        <div id="result" class="hidden p-6 border-t border-gray-100 bg-gray-50 space-y-4">
+            <h2 class="text-xl font-bold text-gray-800">🎉 Вашият готов пост:</h2>
+            
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <h3 class="font-semibold text-blue-600 mb-2">📝 Текст за социалните мрежи:</h3>
+                <div id="postText" class="whitespace-pre-line text-gray-800 text-sm leading-relaxed"></div>
+            </div>
 
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-}
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <h3 class="font-semibold text-indigo-600 mb-2">📸 Идея за снимка / Визия:</h3>
+                <div id="imageIdea" class="text-gray-700 text-sm italic"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generatePost() {
+            const language = document.getElementById('language').value;
+            const business = document.getElementById('business').value;
+            const details = document.getElementById('details').value.trim();
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            if (!business) {
+                alert('Моля, изберете вашата професия/бизнес от менюто!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            loading.classList.remove('hidden');
+            result.classList.add('hidden');
+
+            const prompt = `Ти си професионален социален медиен маркетолог. Създай атрактивен пост за Facebook/Instagram на език: ${language}.
+Бизнес/Ниша: ${business}
+Допълнителни детайли/Цел: ${details || 'Обща презентация и привличане на клиенти'}
+
+Върни отговора точно в следния формат:
+[ПОСТ]
+(Тук напиши привлекателен текст с емоджита, грабващо заглавие и призив към действие)
+
+[СНИМКА]
+(Тук опиши накратко каква снимка или видео да заснеме/генерира потребителят, за да съответства на поста)`;
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Възникна грешка при генерирането.');
+                }
+
+                const output = data.text;
+                const postParts = output.split('[СНИМКА]');
+                
+                const textContent = postParts[0].replace('[ПОСТ]', '').trim();
+                const imageContent = postParts[1] ? postParts[1].trim() : 'Заснемете ясен продукт или процес на работа.';
+
+                document.getElementById('postText').innerText = textContent;
+                document.getElementById('imageIdea').innerText = imageContent;
+
+                result.classList.remove('hidden');
+            } catch (err) {
+                alert('Грешка: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
